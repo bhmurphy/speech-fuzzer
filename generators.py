@@ -1,5 +1,6 @@
 import pyttsx3
 from os.path import join
+from re import sub
 
 # @TODO: Convert files to wav because apparently they aren't actually saved
 # as wav files?
@@ -32,5 +33,20 @@ def generate_words_tts(phrase, save_dir: str):
         engine.save_to_file(word, filename)
     engine.runAndWait()
 
+def generate_phrase_tts(phrase, save_dir):
+    """Save entire phrase to file. Useful for generating a whole
+    phrase when you do not want to piece together separate words
+
+    Arguments:
+    phrase --- Phrase to be translated into an audio file
+    save_dir --- Directory to save generated file to
+    """
+    # Initialize text to speech system
+    engine = pyttsx3.init()
+    remove_whitespace = sub('\s+', '_', phrase)
+    filename = join(save_dir, remove_whitespace + '.wav')
+    engine.save_to_file(phrase, filename)
+    engine.runAndWait()
+
 if __name__ == "__main__":
-    generate_words_tts('wow what a cool future cool', 'test')
+    generate_phrase_tts('wow what a cool future', 'test')
