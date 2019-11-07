@@ -1,6 +1,7 @@
 import argparse
 from os import listdir, mkdir
 from os.path import isdir, join
+from fuzzer import fuzz
 
 if __name__ == "__main__":
     # Creating the various arguments
@@ -9,6 +10,8 @@ if __name__ == "__main__":
         help='Path to the source directory where seeds are stored', default='seeds')
     parser.add_argument('-o', '--output', 
         help='Path to the output directory where results will be stored', default='results')
+    parser.add_argument('-n', '--num', type=int, default=100,
+        help='The number of iterations you want to run for each type. Default = 100')
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('-i', '--ignore', choices=['text', 'word', 'phrase'],  
         help="The type of seeds you want to ignore")
@@ -29,6 +32,7 @@ if __name__ == "__main__":
 
     # Checking the contents of the directory
     expected_folders = ['text', 'word', 'phrase']
+    seeds_files = {}
     if args.ignore is not None:
         expected_folders.remove(args.ignore)
     if args.type is not None:
@@ -40,6 +44,8 @@ if __name__ == "__main__":
         elif not isdir(join(args.source, filename)):
             print("'{}' in source directory '{}' should be directory not file".format(filename, args.source))
             exit(1)
+        else:
+            seeds_files[filename] = [join(args.source, filename, seed) for seed in listdir(join(args.source, filename))]
     
     if not isdir(args.output):
         try:
@@ -48,7 +54,9 @@ if __name__ == "__main__":
             print("Creation of output directory '{}' failed".format(args.output))
             exit(1)
     
-    
-    
+    print("Number of iterations = {}".format(args.num))
+    for key in seeds_files.keys():
+        print(key, seeds_files[key])
+        fuzz(key, seeds_files)
 
 
