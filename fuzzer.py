@@ -7,13 +7,13 @@ from pydub import AudioSegment
 from tempfile import NamedTemporaryFile
 
 def speedup(segment):
-    speed = uniform(0.5, 1.5)
+    speed = uniform(0.5, 1.8)
     print("Speed UP {}%".format(speed))
     return effects_processor.speedup(segment, speed)
 
 def add_noise(segment):
-    print("Add Noise")
     volume = uniform(-75, -50)
+    print("Add Noise ", volume)
     return effects_processor.add_noise(segment, volume)
 
 def pitch_shift(segment):
@@ -24,6 +24,9 @@ def pitch_shift(segment):
 def spacing(segment):
     args = []
     return effects_processor.spacing()
+
+def repeat_syllable(segment):
+    pass
 
 def get_responses(filename):
     process = subprocess.Popen(['googlesamples-assistant-pushtotalk', 
@@ -47,14 +50,14 @@ def get_responses(filename):
 
 def fuzz(data_type, files):
     # Put all relevant functions in a list
-    possible_mutators = [speedup]
+    possible_mutators = [pitch_shift, speedup]
     if data_type == 'word':
         possible_mutators.append(spacing)
     for filename in files:
         initial_user, initial_google = get_responses(filename)
         segment = AudioSegment.from_file(filename, format='wav')
         val = 0
-        while val <= 0.15:
+        while val <= 0.5:
             # Do a random choice 
             mutation = choice(possible_mutators)
             # Perform the mutations
