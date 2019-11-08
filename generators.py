@@ -8,10 +8,10 @@ def generate_words_tts(phrase, save_dir: str):
     """Generate audio files for individual words using text to speech
     system
 
-    Arguments:
-    phrase --- Phrase to be translated into audio files. Should be
-               either a string or a list
-    save_dir --- Directory to save generated files to
+    Args:
+        phrase: Phrase to be translated into audio files. Should be
+            either a string or a list
+        save_dir: Directory to save generated files to
     """
     # Initialize text to speech system
     engine = pyttsx3.init()
@@ -37,9 +37,9 @@ def generate_phrase_tts(phrase, save_dir):
     """Save entire phrase to file. Useful for generating a whole
     phrase when you do not want to piece together separate words
 
-    Arguments:
-    phrase --- Phrase to be translated into an audio file
-    save_dir --- Directory to save generated file to
+    Args:
+        phrase: Phrase to be translated into an audio file
+        save_dir: Directory to save generated file to
     """
     # Initialize text to speech system
     engine = pyttsx3.init()
