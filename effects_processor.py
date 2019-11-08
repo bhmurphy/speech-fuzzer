@@ -1,4 +1,4 @@
-from pydub import AudioSegment, effects
+from pydub import AudioSegment
 from pydub.generators import WhiteNoise
 from sox import Transformer
 from tempfile import NamedTemporaryFile, mktemp
@@ -22,7 +22,16 @@ def speedup(aud_seg: AudioSegment, speed: float, **kwargs):
             aud_seg by 20%, we pass in 1.2. To slow it down
             to 80%, pass in 0.8
     """
-    return effects.speedup(aud_seg, playback_speed=speed)
+    tfm = Transformer()
+    tfm.tempo(speed)
+    # Unfortunately, using our current libraries, idk how to make this faster
+    # Sox requires an input file and an output file to perform the tempo shift
+    temp_in_file = NamedTemporaryFile(suffix='.wav')
+    aud_seg.export(temp_in_file, format='wav')
+    temp_out_file = NamedTemporaryFile(suffix='.wav')
+    tfm.build(temp_in_file.name, temp_out_file.name)
+
+    return AudioSegment.from_file(temp_out_file.name, format='wav')
 
 def add_noise(aud_seg: AudioSegment, volume: float, **kwargs):
     """Add white noise of given volume to audio segment
@@ -57,12 +66,21 @@ def pitch_shift(aud_seg: AudioSegment, semi: float, **kwargs):
 
     return AudioSegment.from_file(temp_out_file.name, format='wav')
 
-def repeat_syllable(aud_seg: AudioSegment, syllables=[0], repetitions=[4], **kwargs):
+def repeat_syllable(aud_seg: AudioSegment, intervals=None, syllables=[0], repetitions=[4], **kwargs):
+    """Repeat certain syllables certain numbers of times
+
+    Args:
+        aud_seg: audio segment to alter
+        syllables: a list of which syllable numbers to repeat
+        repetitions: a list determining how often to repeat each syllable.
+            Must be the same length as syllables argument
+    """
     # Temporarily save to file in order to run praat script on it
     temp_file = NamedTemporaryFile(suffix='.wav')
     aud_seg.export(temp_file, format='wav')
     # Get needed intervals in ms
-    intervals = _extract_syllable_intervals(dirname(temp_file.name), basename(temp_file.name))
+    if not intervals:
+        intervals = extract_syllable_intervals(dirname(temp_file.name), basename(temp_file.name))[0]
     intervals = [intervals[i] for i in syllables]
 
     total_seg = aud_seg[0:intervals[0].start]
@@ -113,7 +131,7 @@ def _get_or_default(iterable, n: int, default):
     except IndexError:
         return default
 
-def _extract_syllable_intervals(dir_name, file_name):
+def extract_syllable_intervals(dir_name, file_name):
     """Get the ranges of each spoken syllable in an audio file
 
     See: Jadoul, Y., Thompson, B., & De Boer, B. (2018). Introducing
@@ -150,13 +168,12 @@ def _extract_syllable_intervals(dir_name, file_name):
         syllable_intervals.append(slice(start_time, stop_time))
     # Remove generated .TextGrid file
     remove(join(dir_name, file_name + '.TextGrid'))
-    return syllable_intervals
+    return syllable_intervals, num
 
 if __name__ == "__main__":
     # add these two lines to whatever main we agree on
     from logging import getLogger, ERROR
     getLogger('sox').setLevel(ERROR)
+    aud = AudioSegment.from_file('tyler_weather_new.wav')
 
-    from pydub.playback import play
-    aud = AudioSegment.from_file('test/its_wednesday.wav')
-    repeat_syllable(aud, syllables=[0]).export('repeated-syllable.wav', format='wav')
+    speedup(aud, 0.69).export('tyler_mutate.wav', format='wav')

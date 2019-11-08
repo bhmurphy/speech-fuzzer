@@ -1,6 +1,6 @@
 # Script pulled straight from https://github.com/FieldDB/Praat-Scripts/blob/master/praat-script-syllable-nuclei-v2file.praat
 # Minor modifications made, mostly just to get rid of unnecessary print statements
-# Credit to the original authors (listed below)
+# Credit to the original authors & source (listed below)
 
 ###########################################################################
 #                                                                         #
