@@ -176,4 +176,4 @@ if __name__ == "__main__":
     getLogger('sox').setLevel(ERROR)
     aud = AudioSegment.from_file('tyler_weather_new.wav')
 
-    speedup(aud, 0.69).export('tyler_mutate.wav', format='wav')
+    repeat_syllable(aud).export('tyler_mutate.wav', format='wav')
