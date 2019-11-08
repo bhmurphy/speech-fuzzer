@@ -7,7 +7,7 @@ from copy import copy
 import parselmouth
 from parselmouth.praat import call, run_file
 from os import remove
-from os.path import join
+from os.path import join, dirname, basename
 
 # Most of this file either calls a pydub function or calls a sox
 # function. Thank god for the open source community
@@ -57,6 +57,27 @@ def pitch_shift(aud_seg: AudioSegment, semi: float, **kwargs):
 
     return AudioSegment.from_file(temp_out_file.name, format='wav')
 
+def repeat_syllable(aud_seg: AudioSegment, syllables=[0], repetitions=[4], **kwargs):
+    # Temporarily save to file in order to run praat script on it
+    temp_file = NamedTemporaryFile(suffix='.wav')
+    aud_seg.export(temp_file, format='wav')
+    # Get needed intervals in ms
+    intervals = _extract_syllable_intervals(dirname(temp_file.name), basename(temp_file.name))
+    intervals = [intervals[i] for i in syllables]
+
+    total_seg = aud_seg[0:intervals[0].start]
+    audio_length = len(aud_seg)
+    for i, syl in enumerate(intervals):
+        for repeat in range(repetitions[i]):
+            # Repeat sample repetitions times
+            total_seg = total_seg.append(aud_seg[syl], crossfade=10)
+            # Add a little spacing in between syllables
+            total_seg = total_seg.append(AudioSegment.silent(duration=300), crossfade=10)
+        next_start_or_end = _get_or_default(intervals, i+1, slice(audio_length, None))
+        total_seg = total_seg.append(aud_seg[syl.stop: next_start_or_end.start], crossfade=10)
+    
+    return total_seg
+
 def spacing(aud_seg_list: list, spaces: list, **kwargs):
     """Add space between list of audio segments and return a
     single audio segment
@@ -75,7 +96,6 @@ def spacing(aud_seg_list: list, spaces: list, **kwargs):
     total_seg = copy(aud_seg_list[0])
     # Append all audio samples with their given silences together
     for i, segment in enumerate(aud_seg_list[1:]):
-        print(len(silences))
         total_seg += silences[i]
         total_seg += segment
     return total_seg
@@ -95,6 +115,11 @@ def _get_or_default(iterable, n: int, default):
 
 def _extract_syllable_intervals(dir_name, file_name):
     """Get the ranges of each spoken syllable in an audio file
+
+    See: Jadoul, Y., Thompson, B., & De Boer, B. (2018). Introducing
+    Parselmouth: A Python interface to Praat. Journal of Phonetics, 71, 1-15.
+    Page 18. Example is largely based off of the one given there.
+    https://billdthompson.github.io/assets/output/Jadoul2018.pdf
 
     Args:
         dir_name: Name of directory file is located in
@@ -132,8 +157,6 @@ if __name__ == "__main__":
     from logging import getLogger, ERROR
     getLogger('sox').setLevel(ERROR)
 
-    slices = _extract_syllable_intervals('test', 'test.wav')
     from pydub.playback import play
-    aud = AudioSegment.from_file('test/test.wav')
-    for slic in slices:
-        play(aud[slic])
+    aud = AudioSegment.from_file('test/its_wednesday.wav')
+    repeat_syllable(aud, syllables=[0]).export('repeated-syllable.wav', format='wav')
