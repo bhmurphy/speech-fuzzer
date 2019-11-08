@@ -80,7 +80,7 @@ def repeat_syllable(aud_seg: AudioSegment, intervals=None, syllables=[0], repeti
     aud_seg.export(temp_file, format='wav')
     # Get needed intervals in ms
     if not intervals:
-        intervals = extract_syllable_intervals(dirname(temp_file.name), basename(temp_file.name))[0]
+        intervals = extract_syllable_intervals(dirname(temp_file.name), basename(temp_file.name))
     intervals = [intervals[i] for i in syllables]
 
     total_seg = aud_seg[0:intervals[0].start]
@@ -168,7 +168,7 @@ def extract_syllable_intervals(dir_name, file_name):
         syllable_intervals.append(slice(start_time, stop_time))
     # Remove generated .TextGrid file
     remove(join(dir_name, file_name + '.TextGrid'))
-    return syllable_intervals, num
+    return syllable_intervals
 
 if __name__ == "__main__":
     # add these two lines to whatever main we agree on
