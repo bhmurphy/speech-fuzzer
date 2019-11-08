@@ -1,7 +1,10 @@
 import argparse
 from os import listdir, mkdir
-from os.path import isdir, join
+from os.path import isdir, join, abspath
 from fuzzer import fuzz
+from logging import getLogger, ERROR
+getLogger('sox').setLevel(ERROR)
+
 
 if __name__ == "__main__":
     # Creating the various arguments
@@ -45,7 +48,7 @@ if __name__ == "__main__":
             print("'{}' in source directory '{}' should be directory not file".format(filename, args.source))
             exit(1)
         else:
-            seeds_files[filename] = [join(args.source, filename, seed) for seed in listdir(join(args.source, filename))]
+            seeds_files[filename] = [join(abspath(args.source), filename, seed) for seed in listdir(join(args.source, filename))]
     
     if not isdir(args.output):
         try:
@@ -55,8 +58,9 @@ if __name__ == "__main__":
             exit(1)
     
     print("Number of iterations = {}".format(args.num))
-    for key in seeds_files.keys():
-        print(key, seeds_files[key])
-        fuzz(key, seeds_files)
+    for i in range(args.num):    
+        for key in seeds_files.keys():
+            #print(key, seeds_files[key])
+            fuzz(key, seeds_files[key])
 
 
