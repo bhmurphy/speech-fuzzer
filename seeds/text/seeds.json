@@ -1,0 +1,9 @@
+{
+    "phrases": {
+        "1" : ["how is the weather"],
+        "2" : ["is it", ["cold", "chilly"], "outside"]
+    },
+    "words": {
+
+    }
+}
