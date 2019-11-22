@@ -5,6 +5,7 @@ import subprocess
 import re
 from pydub import AudioSegment
 from tempfile import NamedTemporaryFile
+from os.path import join
 
 def speedup(segment):
     speed = uniform(0.5, 1.8)
@@ -48,11 +49,9 @@ def get_responses(filename):
         google_final_match = google_match[0]
     return user_final_match, google_final_match
 
-def fuzz(data_type, files):
+def fuzz_phrase(files):
     # Put all relevant functions in a list
-    possible_mutators = [pitch_shift, speedup]
-    if data_type == 'word':
-        possible_mutators.append(spacing)
+    possible_mutators = [pitch_shift, speedup, repeat_syllable, add_noise]
     for filename in files:
         initial_user, initial_google = get_responses(filename)
         segment = AudioSegment.from_file(filename, format='wav')
@@ -66,6 +65,7 @@ def fuzz(data_type, files):
             val = random()
         temp_file = NamedTemporaryFile(suffix='.wav')
         segment.export(temp_file.name, format='wav')
+        # FOR TESTING remove when finished
         segment.export('mutated.wav', format='wav')
         mutated_user, mutated_google = get_responses(temp_file.name)
         if mutated_user == initial_user:
@@ -75,3 +75,22 @@ def fuzz(data_type, files):
             #There is a difference so it is interesting
             print('did not match. "{}" vs "{}"'.format(initial_user, mutated_user))
             #print(initial_google, mutated_google)
+
+def fuzz_word(pairings):
+    for seed_string, source in pairings:
+        possible_mutators = [pitch_shift, speedup, repeat_syllable, add_noise, spacing]
+        raw_audio = AudioSegment.empty()
+        segments = []
+        # Collect audio segments and build unmodified audio sample
+        print(seed_string)
+        for word in seed_string.split():
+            current = AudioSegment.from_file(join(source, word + '.wav'))
+            segments.append(current)
+            raw_audio += current
+        # Create temporary file to send to google
+        temp_file = NamedTemporaryFile(suffix='.wav')
+        raw_audio.export(temp_file.name, format='wav')
+        # FOR TESTING remove when finished 
+        raw_audio.export('raw_{}.wav'.format(seed_string.replace(" ", "_")), format='wav')
+        initial_user, initial_google = get_responses(temp_file.name)
+        print(initial_user, initial_google)

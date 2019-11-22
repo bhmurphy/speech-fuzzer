@@ -1,6 +1,8 @@
 import pyttsx3
 from os.path import join
 from re import sub
+from sys import platform
+import subprocess
 
 # @TODO: Convert files to wav because apparently they aren't actually saved
 # as wav files?
@@ -13,8 +15,6 @@ def generate_words_tts(phrase, save_dir: str):
             either a string or a list
         save_dir: Directory to save generated files to
     """
-    # Initialize text to speech system
-    engine = pyttsx3.init()
 
     # If input was a string, convert it to a list
     if isinstance(phrase, str):
@@ -28,10 +28,22 @@ def generate_words_tts(phrase, save_dir: str):
     # play FAIL formats: can't open input file `file.wav': Missing SSND chunk in AIFF file
     phrase.append(phrase[0])
 
-    for word in phrase:
-        filename = join(save_dir, word + '.wav')
-        engine.save_to_file(word, filename)
-    engine.runAndWait()
+    if platform == 'linux':
+        # Write each word to a file seperately
+        for word in phrase:
+            filename = join(save_dir, word + '.wav')
+            subprocess.Popen(['espeak', word, '-w', filename])
+    else: 
+        if platform != 'darwin':
+            print('Files may not be created on unsuported OS')
+        # Initialize text to speech system
+        engine = pyttsx3.init()
+
+        # Write each word to a file seperately
+        for word in phrase:
+            filename = join(save_dir, word + '.wav')
+            engine.save_to_file(word, filename)
+        engine.runAndWait()
 
 def generate_phrase_tts(phrase, save_dir):
     """Save entire phrase to file. Useful for generating a whole
@@ -42,11 +54,18 @@ def generate_phrase_tts(phrase, save_dir):
         save_dir: Directory to save generated file to
     """
     # Initialize text to speech system
-    engine = pyttsx3.init()
     remove_whitespace = sub('\s+', '_', phrase)
     filename = join(save_dir, remove_whitespace + '.wav')
-    engine.save_to_file(phrase, filename)
-    engine.runAndWait()
+    if platform == 'linux':
+        # eSpeak does not implement the save_to_file function
+        # So we must call it directly
+        subprocess.Popen(['espeak', phrase, '-w', filename])
+    else:
+        if platform != 'darwin':
+            print('File may not be created on unsupported OS')
+        engine = pyttsx3.init()
+        engine.save_to_file(phrase, filename)
+        engine.runAndWait()
 
 if __name__ == "__main__":
-    generate_phrase_tts('wow what a cool future', 'test')
+    generate_words_tts('wow what a cool future', 'test')

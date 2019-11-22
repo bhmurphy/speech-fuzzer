@@ -1,0 +1,6 @@
+google-assistant-library==1.0.0
+google-auth-oauthlib[tool]
+sox==1.3.7
+pyttsx3==2.71
+pydub==0.23.1
+praat-parselmouth==0.3.3
