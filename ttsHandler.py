@@ -26,13 +26,13 @@ def handleTextSeeds(source):
     files = listdir(source)
     if not isdir('phrase'):
         try:
-            mkdir('phrase')
+            mkdir(join(source, 'phrase'))
         except OSError:
             print('Creation of text-to-speech output drectory \'phrase\' failed')
             exit(1)
     if not isdir('word'):
         try:
-            mkdir('word')
+            mkdir(join(source, 'word'))
         except OSError:
             print('Creation of text-to-speech output drectory \'word\' failed')
             exit(1)
