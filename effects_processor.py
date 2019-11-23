@@ -8,11 +8,12 @@ import parselmouth
 from parselmouth.praat import call, run_file
 from os import remove
 from os.path import join, dirname, basename
+import fuzzer
 
 # Most of this file either calls a pydub function or calls a sox
 # function. Thank god for the open source community
 
-def speedup(aud_seg, speed, **kwargs):
+def speedup(aud_seg: AudioSegment, speed: float, **kwargs):
     """Speed up (or slow down) audio segment
     
     Args:
@@ -33,7 +34,7 @@ def speedup(aud_seg, speed, **kwargs):
 
     return AudioSegment.from_file(temp_out_file.name, format='wav')
 
-def add_noise(aud_seg, volume, **kwargs):
+def add_noise(aud_seg: AudioSegment, volume: float, **kwargs):
     """Add white noise of given volume to audio segment
 
     Args:
@@ -46,7 +47,16 @@ def add_noise(aud_seg, volume, **kwargs):
     white_noise = WhiteNoise().to_audio_segment(duration=len(aud_seg), volume=volume)
     return aud_seg.overlay(white_noise)
 
-def pitch_shift(aud_seg: AudioSegment, semi, **kwargs):
+def change_volume(aud_seg: AudioSegment, dB_change: float, **kwargs):
+    """Change volume of audio segment by dB_change dB
+    Arguments:
+        aud_seg: audio segment to alter
+        dB_change: Number of decibels to increase or decrease volume. If postiive,
+            volume increases. If negative, volume decreases
+    """
+    return aud_seg + dB_change
+
+def pitch_shift(aud_seg: AudioSegment, semi: float, **kwargs):
     """Pitch shift audio sample by semi semitones, without changing
     the speed of the audio segment.
 
@@ -66,7 +76,7 @@ def pitch_shift(aud_seg: AudioSegment, semi, **kwargs):
 
     return AudioSegment.from_file(temp_out_file.name, format='wav')
 
-def repeat_syllable(aud_seg, intervals=None, syllables=[0], repetitions=[4], **kwargs):
+def repeat_syllable(aud_seg: AudioSegment, intervals=None, syllables=[0], repetitions=[4], **kwargs):
     """Repeat certain syllables certain numbers of times
 
     Args:
@@ -75,11 +85,11 @@ def repeat_syllable(aud_seg, intervals=None, syllables=[0], repetitions=[4], **k
         repetitions: a list determining how often to repeat each syllable.
             Must be the same length as syllables argument
     """
-    # Temporarily save to file in order to run praat script on it
-    temp_file = NamedTemporaryFile(suffix='.wav')
-    aud_seg.export(temp_file, format='wav')
-    # Get needed intervals in ms
     if not intervals:
+        # Temporarily save to file in order to run praat script on it
+        temp_file = NamedTemporaryFile(suffix='.wav')
+        aud_seg.export(temp_file, format='wav')
+        # Get needed intervals in ms
         intervals = extract_syllable_intervals(dirname(temp_file.name), basename(temp_file.name))
     intervals = [intervals[i] for i in syllables]
 
@@ -92,7 +102,8 @@ def repeat_syllable(aud_seg, intervals=None, syllables=[0], repetitions=[4], **k
             # Add a little spacing in between syllables
             total_seg = total_seg.append(AudioSegment.silent(duration=300), crossfade=10)
         next_start_or_end = _get_or_default(intervals, i+1, slice(audio_length, None))
-        total_seg = total_seg.append(aud_seg[syl.stop: next_start_or_end.start], crossfade=10)
+        if next_start_or_end.start - syl.stop >= 10:
+            total_seg = total_seg.append(aud_seg[syl.stop: next_start_or_end.start], crossfade=10)
     
     return total_seg
 
@@ -131,7 +142,7 @@ def _get_or_default(iterable, n, default):
     except IndexError:
         return default
 
-def extract_syllable_intervals(dir_name, file_name):
+def extract_syllable_intervals(dir_name: str, file_name: str):
     """Get the ranges of each spoken syllable in an audio file
 
     See: Jadoul, Y., Thompson, B., & De Boer, B. (2018). Introducing
@@ -174,6 +185,8 @@ if __name__ == "__main__":
     # add these two lines to whatever main we agree on
     from logging import getLogger, ERROR
     getLogger('sox').setLevel(ERROR)
-    aud = AudioSegment.from_file('tyler_weather_new.wav')
-
-    repeat_syllable(aud).export('tyler_mutate.wav', format='wav')
+    tyler = AudioSegment.from_file('tyler_weather_new.wav', format='wav')
+    # repeated, _, parameters = fuzzer.repeat_syllable(tyler)
+    from pydub.playback import play
+    play(fuzzer.change_volume(tyler)[0])
+    # print(parameters)

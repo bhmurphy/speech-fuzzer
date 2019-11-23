@@ -1,17 +1,18 @@
 import effects_processor
 import generators
-from random import choice, random, randrange, uniform
+from random import choice, random, randrange, uniform, sample
 import subprocess
 import re
 from pydub import AudioSegment
 from tempfile import NamedTemporaryFile
-from os.path import join
+from os.path import join, dirname, basename
 from Failure import Failure
 from tqdm import tqdm
 
 PHRASE_MUTATOR_CHANCE = 0.35
 WORD_MUTATOR_CHANCE = 0.5
 SPACING_CHANCE = 0.5
+ONE_REPETITION_CHANCE = 0.8
 
 def speedup(segment):
     speed = uniform(0.5, 1.8)
@@ -24,7 +25,7 @@ def add_noise(segment):
     return effects_processor.add_noise(segment, volume), 'Add White Noise', volume
 
 def pitch_shift(segment):
-    pitch = float(randrange(-12,12))
+    pitch = uniform(-12,12)
     # print("Pitch Shift ", pitch)
     return effects_processor.pitch_shift(segment, pitch), 'Pitch Shift', pitch
 
@@ -34,12 +35,32 @@ def spacing(segments):
     return segments, 'Spacing', args
 
 def repeat_syllable(segment):
-    args = []
-    return segment, 'Repeat Syllable', args
+    # praat script requires a file on disk
+    temp_file = NamedTemporaryFile(suffix='.wav')
+    segment.export(temp_file, format='wav')
+    intervals = effects_processor.extract_syllable_intervals(\
+        dirname(temp_file.name), basename(temp_file.name))
+    num_interv = len(intervals)
+    # If the praat script fails to find any syllable intervals, return
+    # the unchanged audio segment
+    if num_interv == 0:
+        return segment, 'Repeat Syllable', None
+    # Otherwise, select parameters randomly
+    # Number of syllables to repeat
+    val = random()
+    num_syll = 1 if val < ONE_REPETITION_CHANCE else randrange(0, num_interv)
+    # Which syllables to repeat
+    syllables = sorted(sample(range(num_interv), num_syll))
+    # How often to repeat each syllable
+    repetitions = sample(range(2, 7), num_syll)
+    return effects_processor.repeat_syllable(segment, intervals, syllables, repetitions),\
+         'Repeat Syllable', {'Repeated Syllables': syllables, 'Repetitions': repetitions}
 
 def change_volume(segment):
-    args=[]
-    return segment, 'Change Volume', args
+    dB = uniform(5, 15)
+    if random() > 0.5:
+        dB *= -1
+    return effects_processor.change_volume(segment, dB), 'Change Volume', dB
 
 def get_responses(filename):
     process = subprocess.Popen(['googlesamples-assistant-pushtotalk', 
