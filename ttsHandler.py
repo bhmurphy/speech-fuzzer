@@ -24,13 +24,13 @@ def processPhrases(raw_phrase_values):
 
 def handleTextSeeds(source):
     files = listdir(source)
-    if not isdir('phrase'):
+    if not isdir(join(source, 'phrase')):
         try:
             mkdir(join(source, 'phrase'))
         except OSError:
             print('Creation of text-to-speech output drectory \'phrase\' failed')
             exit(1)
-    if not isdir('word'):
+    if not isdir(join(source, 'word')):
         try:
             mkdir(join(source, 'word'))
         except OSError:
@@ -44,7 +44,7 @@ def handleTextSeeds(source):
                 words_seeds = processPhrases(data["words"].values()) 
                 for i in phrase_seeds:
                     generators.generate_phrase_tts(i, join(source, 'phrase'))
-                with open('seed_guide.txt', 'w+') as guide:
+                with open(join(source, 'word', 'seed_guide.txt'), 'w+') as guide:
                     for i in words_seeds:
-                        guide.write(i + '\n')
+                        guide.write(i + "\n")
                         generators.generate_words_tts(i, join(source, 'word'))

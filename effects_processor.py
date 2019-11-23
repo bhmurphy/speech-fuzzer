@@ -12,7 +12,7 @@ from os.path import join, dirname, basename
 # Most of this file either calls a pydub function or calls a sox
 # function. Thank god for the open source community
 
-def speedup(aud_seg: AudioSegment, speed: float, **kwargs):
+def speedup(aud_seg, speed, **kwargs):
     """Speed up (or slow down) audio segment
     
     Args:
@@ -33,7 +33,7 @@ def speedup(aud_seg: AudioSegment, speed: float, **kwargs):
 
     return AudioSegment.from_file(temp_out_file.name, format='wav')
 
-def add_noise(aud_seg: AudioSegment, volume: float, **kwargs):
+def add_noise(aud_seg, volume, **kwargs):
     """Add white noise of given volume to audio segment
 
     Args:
@@ -46,7 +46,7 @@ def add_noise(aud_seg: AudioSegment, volume: float, **kwargs):
     white_noise = WhiteNoise().to_audio_segment(duration=len(aud_seg), volume=volume)
     return aud_seg.overlay(white_noise)
 
-def pitch_shift(aud_seg: AudioSegment, semi: float, **kwargs):
+def pitch_shift(aud_seg: AudioSegment, semi, **kwargs):
     """Pitch shift audio sample by semi semitones, without changing
     the speed of the audio segment.
 
@@ -66,7 +66,7 @@ def pitch_shift(aud_seg: AudioSegment, semi: float, **kwargs):
 
     return AudioSegment.from_file(temp_out_file.name, format='wav')
 
-def repeat_syllable(aud_seg: AudioSegment, intervals=None, syllables=[0], repetitions=[4], **kwargs):
+def repeat_syllable(aud_seg, intervals=None, syllables=[0], repetitions=[4], **kwargs):
     """Repeat certain syllables certain numbers of times
 
     Args:
@@ -96,7 +96,7 @@ def repeat_syllable(aud_seg: AudioSegment, intervals=None, syllables=[0], repeti
     
     return total_seg
 
-def spacing(aud_seg_list: list, spaces: list, **kwargs):
+def spacing(aud_seg_list, spaces, **kwargs):
     """Add space between list of audio segments and return a
     single audio segment
 
@@ -118,7 +118,7 @@ def spacing(aud_seg_list: list, spaces: list, **kwargs):
         total_seg += segment
     return total_seg
 
-def _get_or_default(iterable, n: int, default):
+def _get_or_default(iterable, n, default):
     """Get the nth index of an iterable, return a default if the nth value doesn't exist.
 
     Args:

@@ -5,16 +5,19 @@ from fuzzer import fuzz_phrase, fuzz_word
 from logging import getLogger, ERROR
 from ttsHandler import handleTextSeeds, processPhrases
 from json import load
+from FailureAllocator import FailureAllocator
+from tqdm import trange
+
 getLogger('sox').setLevel(ERROR)
 
 def addSeedFiles(dict_to_extend, source_path, seed_type):
     if seed_type == "phrase":
-        dict_to_extend[filename].extend([join(source_path, seed) for seed in listdir(source_path)])
+        dict_to_extend['phrase'].extend([join(source_path, seed) for seed in listdir(source_path)])
     elif seed_type == 'text_word':
-        with open(join(source_path, 'guide.txt')) as guide:
+        with open(join(source_path, 'seed_guide.txt')) as guide:
             string_list = dict_to_extend['word'] 
             for line in guide:
-                string_list.append((line, source_path))
+                string_list.append((line.rstrip(), source_path))
     else:
         string_list = dict_to_extend['word']
         for filename in listdir(source_path):
@@ -22,7 +25,7 @@ def addSeedFiles(dict_to_extend, source_path, seed_type):
                 with open(join(source_path, filename), 'r') as guide_file:
                     data = load(guide_file)
                     for seed_string in processPhrases(data['words'].values()):
-                        string_list.append((seed_string, source_path))
+                        string_list.append((seed_string.rstrip(), source_path))
 
 
 if __name__ == "__main__":
@@ -32,7 +35,7 @@ if __name__ == "__main__":
         help='Path to the source directory where seeds are stored', default='seeds')
     parser.add_argument('-o', '--output', 
         help='Path to the output directory where results will be stored', default='results')
-    parser.add_argument('-n', '--num', type=int, default=100,
+    parser.add_argument('-n', '--num', type=int, default=5,
         help='The number of iterations you want to run for each type. Default = 100')
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('-i', '--ignore', choices=['text', 'word', 'phrase'],  
@@ -80,18 +83,46 @@ if __name__ == "__main__":
             #Add the new seeds for processing
             addSeedFiles(seeds_files, seeds_source, filename)
     
+    # Check if the output directory exists or is directory
+    # If not create it  
+    pass_path = join(args.output, 'passed')
+    failed_path = join(args.output, 'failed')
     if not isdir(args.output):
         try:
             mkdir(args.output)
+            mkdir(failed_path)
+            mkdir(pass_path)
         except OSError:
             print("Creation of output directory '{}' failed".format(args.output))
             exit(1)
-    
+    # If it does exist check to see if their are passed and failed subdirectories
+    # If not create them
+    else:
+        files = listdir(args.output)
+        if 'passed' not in files:
+            try:
+                mkdir(pass_path)
+            except OSError:
+                print("Creation of output sub directory '{}' failed".format(pass_path))
+                # exit(1)
+        if 'failed' not in files:
+            try:
+                mkdir(failed_path)
+            except OSError:
+                print("Creation of output sub directory '{}' failed".format(failed_path))
+                # exit(1)
+
     print("Number of iterations = {}".format(args.num))
-    for i in range(args.num):    
+    fail_allocator = FailureAllocator(args.output)
+    for i in trange(args.num, desc="Iterations", ascii=True, leave=False):    
         if len(seeds_files['phrase']) > 0:
-            fuzz_phrase(seeds_files['phrase'])
+            fuzz_phrase(seeds_files['phrase'], pass_path, failed_path, fail_allocator)
         if len(seeds_files['word']) > 0:
-            fuzz_word(seeds_files['word'])
+            fuzz_word(seeds_files['word'], pass_path, failed_path, fail_allocator)
+    fail_allocator.writeFailures()
+
+    
+
+
 
 
