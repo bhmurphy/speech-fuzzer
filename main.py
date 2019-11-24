@@ -1,12 +1,13 @@
 import argparse
 from os import listdir, mkdir
-from os.path import isdir, join, abspath
+from os.path import isdir, join, abspath, isfile
 from fuzzer import fuzz_phrase, fuzz_word
 from logging import getLogger, ERROR
 from ttsHandler import handleTextSeeds, processPhrases
 from json import load
 from FailureAllocator import FailureAllocator
 from tqdm import trange
+from generators import generate_words_tts
 
 getLogger('sox').setLevel(ERROR)
 
@@ -27,6 +28,32 @@ def addSeedFiles(dict_to_extend, source_path, seed_type):
                     for seed_string in processPhrases(data['words'].values()):
                         string_list.append((seed_string.rstrip(), source_path))
 
+def check_word_seeds(word_seeds):
+    """When running in word mode, check if the corresponding word files actually exist
+        args: word_seeds: list of (phrase_str, directory) tuples from the 'word' key of the
+            seeds_files dictionary
+    """
+    pos_responses = ['y', 'yes']
+    neg_responses = ['n', 'no']
+    for seed, directory in word_seeds:
+        to_generate = []
+        for word in seed.split():
+            word_file = join(directory, word + '.wav')
+            if not isfile(word_file):
+                gen_response = input('Seed file {} does not exist. Generate it using text-to-speech? (n to exit)\
+                    [y/n] '.format(word_file))
+                # Only accept a valid response
+                while gen_response not in (pos_responses + neg_responses):
+                    gen_response = input('Only accepted responses are y or n. Generate file using text-to-speech?\
+                        (n to exit) [y/n] ')
+                if gen_response.lower() in pos_responses:
+                    to_generate.append(word)
+                else: # response is "no"
+                    print("Exiting...")
+                    quit()
+        # Only call the function if we have any words to generate
+        if len(to_generate) > 0:
+            generate_words_tts(to_generate, directory)
 
 if __name__ == "__main__":
     # Creating the various arguments
@@ -82,7 +109,6 @@ if __name__ == "__main__":
             seeds_source = join(args.source, filename)
             #Add the new seeds for processing
             addSeedFiles(seeds_files, seeds_source, filename)
-    
     # Check if the output directory exists or is directory
     # If not create it  
     pass_path = join(args.output, 'passed')
@@ -112,6 +138,9 @@ if __name__ == "__main__":
                 print("Creation of output sub directory '{}' failed".format(failed_path))
                 # exit(1)
 
+    if 'word' in seeds_files:
+        check_word_seeds(seeds_files['word'])
+
     print("Number of iterations = {}".format(args.num))
     fail_allocator = FailureAllocator(args.output)
     for i in trange(args.num, desc="Iterations", ascii=True, leave=False):    
@@ -120,9 +149,3 @@ if __name__ == "__main__":
         if len(seeds_files['word']) > 0:
             fuzz_word(seeds_files['word'], pass_path, failed_path, fail_allocator)
     fail_allocator.writeFailures()
-
-    
-
-
-
-

@@ -8,6 +8,9 @@ from tempfile import NamedTemporaryFile
 from os.path import join, dirname, basename
 from Failure import Failure
 from tqdm import tqdm
+import tensorflow as tf
+import tensorflow_hub as hub
+from numpy import inner
 
 PHRASE_MUTATOR_CHANCE = 0.35
 WORD_MUTATOR_CHANCE = 0.5
@@ -91,10 +94,10 @@ def get_responses(filename):
 
 def fuzz_phrase(files, passed_path, failed_path, fail_allocator):
     # Put all relevant functions in a list
-    possible_mutators = [pitch_shift, speedup, add_noise, repeat_syllable, change_volume]
+    possible_mutators = [repeat_syllable]
     for filename in tqdm(files, desc="Phrase", ascii=True, leave=False):
         initial_user, initial_google = get_responses(filename)
-        segment = AudioSegment.from_file(filename, format='wav')
+        segment = AudioSegment.from_file(filename)
         val = 0
         mutators = []
         args = []
@@ -116,13 +119,14 @@ def fuzz_phrase(files, passed_path, failed_path, fail_allocator):
             segment.export(join(passed_path, file_path), format='wav')
         else:
             # The mutator did change googles understanding
-            this_fail = Failure(file_path, mutators, args)
+            this_fail = Failure(file_path, mutators, args,\
+                 fail_allocator.getSemanticSim(initial_google, mutated_google))
             fail_allocator.addFailure(this_fail)
             segment.export(join(failed_path, file_path), format='wav')
         fail_allocator.total_runs+=1
 
 def fuzz_word(pairings, passed_path, failed_path, fail_allocator):
-    possible_mutators = [pitch_shift, speedup, repeat_syllable, add_noise, change_volume]
+    possible_mutators = [pitch_shift, speedup, repeat_syllable, add_noise, change_volume, spacing]
     for seed_string, source in tqdm(pairings, desc="Word", ascii=True, leave=False):
         combined_audio = AudioSegment.empty()
         segments = []
@@ -163,7 +167,8 @@ def fuzz_word(pairings, passed_path, failed_path, fail_allocator):
             combined_audio.export(join(passed_path, file_path), format='wav')
         else:
             # The mutator did change googles understanding
-            this_fail = Failure(file_path, mutators, args)
+            this_fail = Failure(file_path, mutators, args,\
+                 fail_allocator.getSemanticSim(initial_google, mutated_google))
             fail_allocator.addFailure(this_fail)
             combined_audio.export(join(failed_path, file_path), format='wav')
         fail_allocator.total_runs+=1
