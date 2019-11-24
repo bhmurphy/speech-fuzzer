@@ -30,9 +30,16 @@ def pitch_shift(segment):
     return effects_processor.pitch_shift(segment, pitch), 'Pitch Shift', pitch
 
 def spacing(segments):
-    args = []
+    # 50% chance to have same spacing between words
+    if random() > 0.5:
+        # Same spacing
+        space = uniform(25, 500)
+        spaces = [space for x in range(len(segments) - 1)]
+    else:
+        # Different spacing
+        spaces = [uniform(50, 500) for x in range(len(segments) - 1)]
     # return effects_processor.spacing()
-    return segments, 'Spacing', args
+    return effects_processor.spacing(segments, spaces), 'Spacing', spaces
 
 def repeat_syllable(segment):
     # praat script requires a file on disk

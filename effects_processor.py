@@ -8,7 +8,6 @@ import parselmouth
 from parselmouth.praat import call, run_file
 from os import remove
 from os.path import join, dirname, basename
-import fuzzer
 
 # Most of this file either calls a pydub function or calls a sox
 # function. Thank god for the open source community
@@ -185,8 +184,13 @@ if __name__ == "__main__":
     # add these two lines to whatever main we agree on
     from logging import getLogger, ERROR
     getLogger('sox').setLevel(ERROR)
-    tyler = AudioSegment.from_file('tyler_weather_new.wav', format='wav')
-    # repeated, _, parameters = fuzzer.repeat_syllable(tyler)
-    from pydub.playback import play
-    play(fuzzer.change_volume(tyler)[0])
+    # wow = AudioSegment.from_file('test/wow.wav')
+    # what = AudioSegment.from_file('test/what.wav')
+    # a = AudioSegment.from_file('test/a.wav')
+    # cool = AudioSegment.from_file('test/cool.wav')
+    # future = AudioSegment.from_file('test/future.wav')
+    # lst = [wow, what, a, cool, future]
+    # put_together, _, parameters = fuzzer.spacing(lst)
+    # from pydub.playback import play
+    # play(put_together)
     # print(parameters)
