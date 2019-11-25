@@ -4,7 +4,7 @@ from sox import Transformer
 from tempfile import NamedTemporaryFile, mktemp
 from random import randint
 from copy import copy
-import parselmouth
+from parselmouth import PraatError
 from parselmouth.praat import call, run_file
 from os import remove
 from os.path import join, dirname, basename
@@ -154,30 +154,33 @@ def extract_syllable_intervals(dir_name: str, file_name: str):
         file_name: Name of file to analyze
     """
     # Use Praat script to extract syllables
-    objects = run_file('praat_scripts/syllable_nuclei.praat', -40, 2, 0.3, 0.1, True, dir_name, file_name)
-    textgrid = objects[0]
-    num = call(textgrid, "Get number of points", 1)
-    # Get start times of every syllable
-    syllable_nuclei = [call(textgrid, "Get time of point", 1, i + 1) for i in range(num)]
+    try:
+        objects = run_file('praat_scripts/syllable_nuclei.praat', -40, 2, 0.3, 0.1, True, dir_name, file_name)
+        textgrid = objects[0]
+        num = call(textgrid, "Get number of points", 1)
+        # Get start times of every syllable
+        syllable_nuclei = [call(textgrid, "Get time of point", 1, i + 1) for i in range(num)]
 
-    syllable_intervals = []
+        syllable_intervals = []
 
-    for i, start_time in enumerate(syllable_nuclei):
-        # Retrieve the end of the syllable
-        # This is either the start of the next syllable or the end of the
-        # current interval
-        interval = call(textgrid, "Get interval at time", 2, start_time)
-        next_nucleus = _get_or_default(syllable_nuclei, i+1, float('inf'))
-        interval_end = call(textgrid, "Get end time of interval", 2, interval)
-        stop_time = min(next_nucleus, interval_end)
+        for i, start_time in enumerate(syllable_nuclei):
+            # Retrieve the end of the syllable
+            # This is either the start of the next syllable or the end of the
+            # current interval
+            interval = call(textgrid, "Get interval at time", 2, start_time)
+            next_nucleus = _get_or_default(syllable_nuclei, i+1, float('inf'))
+            interval_end = call(textgrid, "Get end time of interval", 2, interval)
+            stop_time = min(next_nucleus, interval_end)
 
-        # Convert  and stop time to milliseconds
-        start_time = int(round(start_time * 1000))
-        stop_time = int(round(stop_time * 1000))
-        # Append a slice so we can easily slice the AudioSegment objects later
-        syllable_intervals.append(slice(start_time, stop_time))
-    # Remove generated .TextGrid file
-    remove(join(dir_name, file_name + '.TextGrid'))
+            # Convert  and stop time to milliseconds
+            start_time = int(round(start_time * 1000))
+            stop_time = int(round(stop_time * 1000))
+            # Append a slice so we can easily slice the AudioSegment objects later
+            syllable_intervals.append(slice(start_time, stop_time))
+        # Remove generated .TextGrid file
+        remove(join(dir_name, file_name + '.TextGrid'))
+    except PraatError:
+        syllable_intervals = []
     return syllable_intervals
 
 if __name__ == "__main__":

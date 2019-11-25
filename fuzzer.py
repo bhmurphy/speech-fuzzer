@@ -58,7 +58,7 @@ def repeat_syllable(segment):
     # Otherwise, select parameters randomly
     # Number of syllables to repeat
     val = random()
-    num_syll = 1 if val < ONE_REPETITION_CHANCE else randrange(0, num_interv)
+    num_syll = 1 if val < ONE_REPETITION_CHANCE else randrange(1, num_interv + 1)
     # Which syllables to repeat
     syllables = sorted(sample(range(num_interv), num_syll))
     # How often to repeat each syllable
@@ -94,7 +94,7 @@ def get_responses(filename):
 
 def fuzz_phrase(files, passed_path, failed_path, fail_allocator):
     # Put all relevant functions in a list
-    possible_mutators = [repeat_syllable]
+    possible_mutators = [pitch_shift, speedup, add_noise, repeat_syllable]
     for filename in tqdm(files, desc="Phrase", ascii=True, leave=False):
         initial_user, initial_google = get_responses(filename)
         segment = AudioSegment.from_file(filename)

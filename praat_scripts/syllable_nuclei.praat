@@ -115,7 +115,7 @@ minsounding = 'minimum_sounding_duration'
    endif
 
   # get pauses (silences) and speakingtime
-   To TextGrid (silences)... threshold3 minpause minsounding silent utterance
+   nowarn To TextGrid (silences)... threshold3 minpause minsounding silent utterance
    textgridid = selected("TextGrid")
    silencetierid = Extract tier... 1
    silencetableid = Down to TableOfReal... utterance

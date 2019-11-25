@@ -143,9 +143,12 @@ if __name__ == "__main__":
 
     print("Number of iterations = {}".format(args.num))
     fail_allocator = FailureAllocator(args.output)
-    for i in trange(args.num, desc="Iterations", ascii=True, leave=False):    
-        if len(seeds_files['phrase']) > 0:
-            fuzz_phrase(seeds_files['phrase'], pass_path, failed_path, fail_allocator)
-        if len(seeds_files['word']) > 0:
-            fuzz_word(seeds_files['word'], pass_path, failed_path, fail_allocator)
+    try:
+        for i in trange(args.num, desc="Iterations", ascii=True, leave=False):    
+            if len(seeds_files['phrase']) > 0:
+                fuzz_phrase(seeds_files['phrase'], pass_path, failed_path, fail_allocator)
+            if len(seeds_files['word']) > 0:
+                fuzz_word(seeds_files['word'], pass_path, failed_path, fail_allocator)
+    except KeyboardInterrupt:
+        print("\n\nStopped early by user. Writing results file...")
     fail_allocator.writeFailures()
