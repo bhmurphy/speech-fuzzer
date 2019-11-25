@@ -5,9 +5,10 @@ from fuzzer import fuzz_phrase, fuzz_word
 from logging import getLogger, ERROR
 from ttsHandler import handleTextSeeds, processPhrases
 from json import load
-from FailureAllocator import FailureAllocator
+from FailureAccumulator import FailureAccumulator
 from tqdm import trange
 from generators import generate_words_tts
+from GoogleClient import GoogleClient
 
 getLogger('sox').setLevel(ERROR)
 
@@ -142,13 +143,14 @@ if __name__ == "__main__":
         check_word_seeds(seeds_files['word'])
 
     print("Number of iterations = {}".format(args.num))
-    fail_allocator = FailureAllocator(args.output)
+    fail_accumulator = FailureAccumulator(args.output)
+    client = GoogleClient()
     try:
         for i in trange(args.num, desc="Iterations", ascii=True, leave=False):    
             if len(seeds_files['phrase']) > 0:
-                fuzz_phrase(seeds_files['phrase'], pass_path, failed_path, fail_allocator)
+                fuzz_phrase(seeds_files['phrase'], pass_path, failed_path, fail_accumulator, client)
             if len(seeds_files['word']) > 0:
-                fuzz_word(seeds_files['word'], pass_path, failed_path, fail_allocator)
+                fuzz_word(seeds_files['word'], pass_path, failed_path, fail_accumulator, client)
     except KeyboardInterrupt:
         print("\n\nStopped early by user. Writing results file...")
-    fail_allocator.writeFailures()
+    fail_accumulator.writeFailures()

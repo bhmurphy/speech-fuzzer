@@ -14,7 +14,7 @@ from numpy import inner
 
 PHRASE_MUTATOR_CHANCE = 0.35
 WORD_MUTATOR_CHANCE = 0.5
-SPACING_CHANCE = 0.5
+SPACING_CHANCE = 0.9
 ONE_REPETITION_CHANCE = 0.8
 
 def speedup(segment):
@@ -72,31 +72,11 @@ def change_volume(segment):
         dB *= -1
     return effects_processor.change_volume(segment, dB), 'Change Volume', dB
 
-def get_responses(filename):
-    process = subprocess.Popen(['googlesamples-assistant-pushtotalk', 
-            '--project-id', 'fuzzing-personal-assistants ',
-            '--device-model-id', 'fuzzing-personal-assistants-tylers-pc ',
-            '-i', filename,
-            '-o', 'tmp.wav', '-v'], stderr=subprocess.PIPE)
-    val = 0
-    output = process.communicate()[1].decode('utf-8')
-    #print(output)
-    user_matches = re.findall("Transcript of user request: \"(.*?)\"", str(output))
-    google_match = re.findall("supplemental_display_text: \"(.*?)\"", str(output))
-    user_final_match = None
-    if len(user_matches) > 0:
-        user_final_match = user_matches[-1]
-    #print(user_matches, google_match)
-    google_final_match = None
-    if len(google_match) > 0:
-        google_final_match = google_match[0]
-    return user_final_match, google_final_match
-
-def fuzz_phrase(files, passed_path, failed_path, fail_allocator):
+def fuzz_phrase(files, passed_path, failed_path, fail_accumulator, client):
     # Put all relevant functions in a list
     possible_mutators = [pitch_shift, speedup, add_noise, repeat_syllable]
     for filename in tqdm(files, desc="Phrase", ascii=True, leave=False):
-        initial_user, initial_google = get_responses(filename)
+        initial_user, initial_google = client.get_responses(filename)
         segment = AudioSegment.from_file(filename)
         val = 0
         mutators = []
@@ -112,21 +92,20 @@ def fuzz_phrase(files, passed_path, failed_path, fail_allocator):
             val = random()
         temp_file = NamedTemporaryFile(suffix='.wav')
         segment.export(temp_file.name, format='wav')
-        mutated_user, mutated_google = get_responses(temp_file.name)
+        mutated_user, mutated_google = client.get_responses(temp_file.name)
         file_path = '{}_{}.wav'.format(filename.split('/')[-1].rstrip('.wav'), segment.__hash__())
         if mutated_user == initial_user:
             # The mutator did not change googles understanding
             segment.export(join(passed_path, file_path), format='wav')
         else:
             # The mutator did change googles understanding
-            this_fail = Failure(file_path, mutators, args,\
-                 fail_allocator.getSemanticSim(initial_google, mutated_google))
-            fail_allocator.addFailure(this_fail)
+            this_fail = Failure(file_path, mutators, args, client.get_similarity(initial_google, mutated_google))
+            fail_accumulator.addFailure(this_fail)
             segment.export(join(failed_path, file_path), format='wav')
-        fail_allocator.total_runs+=1
+        fail_accumulator.total_runs+=1
 
-def fuzz_word(pairings, passed_path, failed_path, fail_allocator):
-    possible_mutators = [pitch_shift, speedup, repeat_syllable, add_noise, change_volume, spacing]
+def fuzz_word(pairings, passed_path, failed_path, fail_accumulator, client):
+    possible_mutators = [pitch_shift, speedup, repeat_syllable, add_noise, change_volume]
     for seed_string, source in tqdm(pairings, desc="Word", ascii=True, leave=False):
         combined_audio = AudioSegment.empty()
         segments = []
@@ -139,7 +118,7 @@ def fuzz_word(pairings, passed_path, failed_path, fail_allocator):
         # Create temporary file to send to google
         temp_file = NamedTemporaryFile(suffix='.wav')
         combined_audio.export(temp_file.name, format='wav')
-        initial_user, initial_google = get_responses(temp_file.name)
+        initial_user, initial_google = client.get_responses(temp_file.name)
         val = 0.0
         mutators = []
         args = []
@@ -159,7 +138,7 @@ def fuzz_word(pairings, passed_path, failed_path, fail_allocator):
             combined_audio += seg
         temp_file = NamedTemporaryFile(suffix='.wav')
         combined_audio.export(temp_file.name, format='wav')
-        mutated_user, mutated_google = get_responses(temp_file.name)
+        mutated_user, mutated_google = client.get_responses(temp_file.name)
         file_path = '{}_{}.wav'.format(seed_string.replace(" ", "_"), combined_audio.__hash__())
         
         if mutated_user == initial_user and initial_user is not None and mutated_user is not None:
@@ -167,10 +146,9 @@ def fuzz_word(pairings, passed_path, failed_path, fail_allocator):
             combined_audio.export(join(passed_path, file_path), format='wav')
         else:
             # The mutator did change googles understanding
-            this_fail = Failure(file_path, mutators, args,\
-                 fail_allocator.getSemanticSim(initial_google, mutated_google))
-            fail_allocator.addFailure(this_fail)
+            this_fail = Failure(file_path, mutators, args, client.get_similarity(initial_google, mutated_google))
+            fail_accumulator.addFailure(this_fail)
             combined_audio.export(join(failed_path, file_path), format='wav')
-        fail_allocator.total_runs+=1
-        
+        fail_accumulator.total_runs+=1
+
         

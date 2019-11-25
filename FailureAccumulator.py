@@ -1,14 +1,7 @@
 from os.path import join
-from os import environ
 from datetime import datetime
-from tensorflow_hub import load
-from numpy import inner
-from logging import getLogger, ERROR
 
-class FailureAllocator:
-    getLogger('tensorflow').setLevel(ERROR)
-    environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    semantic_sim = load("https://tfhub.dev/google/universal-sentence-encoder/3")
+class FailureAccumulator:
 
     def __init__(self, output_file):
         self.failure_list = []
@@ -37,11 +30,3 @@ class FailureAllocator:
         for m in mutators:
             self.mutator_counts[m] = self.mutator_counts.get(m, 0) + 1
         self.fail_total+=1
-
-    def getSemanticSim(self, initial, mutated):
-        if not initial:
-            initial = ''
-        if not mutated:
-            mutated = ''
-        embeddings = self.semantic_sim([initial, mutated])['outputs']
-        return inner(embeddings, embeddings)[0, 1]

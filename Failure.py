@@ -6,7 +6,7 @@ class Failure:
         self.response_similarity = response_similarity
 
     def getDescription(self):
-        string = 'File {}\n Mutators: \n\t{}\n Parameters: \n\t{}\nSimilarity between\
-            mutated response and response to seed: {}\n'.format(self.file_name,\
-                self.mutators, self.mutator_parameters, self.response_similarity)
+        string = 'File {}\n Mutators: \n\t{}\n Parameters: \n\t{}\nSimilarity between' \
+                 ' seed response and mutated response: {}\n'.format(self.file_name, \
+                    self.mutators, self.mutator_parameters, self.response_similarity)
         return string
