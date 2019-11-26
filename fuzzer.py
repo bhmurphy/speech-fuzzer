@@ -8,8 +8,6 @@ from tempfile import NamedTemporaryFile
 from os.path import join, dirname, basename
 from Failure import Failure
 from tqdm import tqdm
-import tensorflow as tf
-import tensorflow_hub as hub
 from numpy import inner
 
 PHRASE_MUTATOR_CHANCE = 0.35
@@ -99,7 +97,8 @@ def fuzz_phrase(files, passed_path, failed_path, fail_accumulator, client):
             segment.export(join(passed_path, file_path), format='wav')
         else:
             # The mutator did change googles understanding
-            this_fail = Failure(file_path, mutators, args, client.get_similarity(initial_google, mutated_google))
+            this_fail = Failure(file_path, mutators, args, client.get_similarity(initial_user, mutated_user), \
+                client.get_similarity(initial_google, mutated_google))
             fail_accumulator.addFailure(this_fail)
             segment.export(join(failed_path, file_path), format='wav')
         fail_accumulator.total_runs+=1
@@ -146,7 +145,8 @@ def fuzz_word(pairings, passed_path, failed_path, fail_accumulator, client):
             combined_audio.export(join(passed_path, file_path), format='wav')
         else:
             # The mutator did change googles understanding
-            this_fail = Failure(file_path, mutators, args, client.get_similarity(initial_google, mutated_google))
+            this_fail = Failure(file_path, mutators, args, client.get_similarity(initial_user, mutated_user), \
+                client.get_similarity(initial_google, mutated_google))
             fail_accumulator.addFailure(this_fail)
             combined_audio.export(join(failed_path, file_path), format='wav')
         fail_accumulator.total_runs+=1
