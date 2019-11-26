@@ -14,17 +14,17 @@ We recommend making a new [virtual environment](https://docs.python.org/3/tutori
 
 Speech Fuzzer also relies on both ffmpeg and sox. To install on Ubuntu:  
 
-``
+```
 apt-get install ffmpeg
 apt-get install sox
-``
+```
 
 To install on MacOS with [Homebrew](https://brew.sh/):
 
-``
+```
 brew install ffmpeg
 brew install sox
-``
+```
 
 ## Running the fuzzer:
 
@@ -55,7 +55,7 @@ The directory that stores the seeds to fuzz. Defaults to `seeds` Speech fuzzer c
 * Phrase audio seeds are the simplest. These files should be in wav format, and are generally intended to be phrases that one would say to a personal assistant. For example, a phrase seed might be a wav file that is a recording of a person saying "How does the weather look outside?" Phrase seeds should be stored in `<SOURCE>/phrase`
   Any mutations chosen for a phrase seed are applied to the entire file. For example, if a pitch shift mutation is chosen for a phrase seed during the fuzzing process, the entire file will be pitch-shifted.
 * Word audio seeds should also be in a wav format, and should be recordings of single words that can be pieced together to make a phrase. Each word file has the chance to be mutated separately. For example, the mutation may consist of pitch shifting only one word in the given phrase, instead of the entire generated recording.
- Word audio seeds require at least one helper JSON file that contains the phrases which should be constructed from the given audio files. The JSON file(s) should contain a dictionary with a single key, "words". The value for this key will be another dictionary consisting of key, value pairs. In these pairs, the values will be the phrases to fuzz.
+ Word audio seeds require at least one helper JSON file that contains the phrases which should be constructed from the given audio files. The JSON file(s) should contain a dictionary with a single key, "words". The value for this key will be another dictionary consisting of key, value pairs. In these pairs, the values will be the phrases to fuzz.  
  Synonyms can be included by making a sub-list within the phrase list; the phrase will be generated using all variants of the synonyms provided. For example, if the given phrase is ['is it', ['sunny', 'rainy'], 'outside'], both the phrase 'is it sunny outside' and the phrase 'is it rainy outside' will be generated.
 * Text seeds contain text that will be converted into audio files using the system's text-to-speech platform. These text files should be JSON, and contain a dictionary with two keys: "phrases" and "words". Phrases will be fuzzed like phrase audio, and words will be fuzzed like word audio. Each key contains its own dictionary of key, phrase pairs. The phrase in each of these pairs should be a list containing one or multiple strings that make up the phrase to be fuzzed. Just as for word seeds, synonyms can be substituted in the JSON file.
 
