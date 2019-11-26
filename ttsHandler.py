@@ -1,6 +1,6 @@
 import json
 from os import listdir, mkdir
-from os.path import join,abspath, isdir
+from os.path import join, isdir
 import generators
 
 def processPhrases(raw_phrase_values):
