@@ -1,14 +1,10 @@
 import effects_processor
-import generators
 from random import choice, random, randrange, uniform, sample
-import subprocess
-import re
 from pydub import AudioSegment
 from tempfile import NamedTemporaryFile
 from os.path import join, dirname, basename
 from Failure import Failure
 from tqdm import tqdm
-from numpy import inner
 
 PHRASE_MUTATOR_CHANCE = 0.35
 WORD_MUTATOR_CHANCE = 0.5

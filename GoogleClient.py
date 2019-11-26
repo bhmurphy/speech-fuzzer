@@ -1,4 +1,3 @@
-import fuzzer
 import subprocess
 import re
 from tensorflow_hub import load

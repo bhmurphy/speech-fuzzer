@@ -1,8 +1,7 @@
 from pydub import AudioSegment
 from pydub.generators import WhiteNoise
 from sox import Transformer
-from tempfile import NamedTemporaryFile, mktemp
-from random import randint
+from tempfile import NamedTemporaryFile
 from copy import copy
 from parselmouth import PraatError
 from parselmouth.praat import call, run_file

@@ -1,6 +1,6 @@
 import argparse
 from os import listdir, mkdir
-from os.path import isdir, join, abspath, isfile
+from os.path import isdir, join, isfile
 from fuzzer import fuzz_phrase, fuzz_word
 from logging import getLogger, ERROR
 from ttsHandler import handleTextSeeds, processPhrases
