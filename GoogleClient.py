@@ -1,4 +1,3 @@
-import fuzzer
 import subprocess
 import re
 from tensorflow_hub import load
@@ -10,9 +9,9 @@ from os import environ
 class GoogleClient:
     getLogger('tensorflow').setLevel(ERROR)
     environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    semantic_sim = load("https://tfhub.dev/google/universal-sentence-encoder/3")
 
     def __init__(self):
+        self.semantic_sim = load("https://tfhub.dev/google/universal-sentence-encoder/3")
         with open('google-config.json') as config:
             file_params = json_load(config)
 

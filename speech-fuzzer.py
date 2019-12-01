@@ -1,6 +1,6 @@
 import argparse
-from os import listdir, mkdir
-from os.path import isdir, join, abspath, isfile
+from os import listdir, mkdir, remove
+from os.path import isdir, join, isfile
 from fuzzer import fuzz_phrase, fuzz_word
 from logging import getLogger, ERROR
 from ttsHandler import handleTextSeeds, processPhrases
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', 
         help='Path to the output directory where results will be stored', default='results')
     parser.add_argument('-n', '--num', type=int, default=5,
-        help='The number of iterations you want to run for each type. Default = 100')
+        help='The number of iterations you want to run for each type. Default = 5')
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('-i', '--ignore', choices=['text', 'word', 'phrase'],  
         help="The type of seeds you want to ignore")
@@ -154,4 +154,6 @@ if __name__ == "__main__":
                 fuzz_word(seeds_files['word'], pass_path, failed_path, fail_accumulator, client)
     except KeyboardInterrupt:
         print("\n\nStopped early by user. Writing results file...")
+        if isfile('tmp.wav'):
+            remove('tmp.wav')
     fail_accumulator.writeFailures()
