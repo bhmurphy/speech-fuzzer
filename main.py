@@ -26,8 +26,9 @@ def addSeedFiles(dict_to_extend, source_path, seed_type):
             if filename.endswith('.json'): 
                 with open(join(source_path, filename), 'r') as guide_file:
                     data = load(guide_file)
-                    for seed_string in processPhrases(data['words'].values()):
-                        string_list.append((seed_string.rstrip(), source_path))
+                    for key in processPhrases(data['words'].keys()):
+                        seed_string = data['words'][key]
+                        string_list.append((seed_string.rstrip(), join(source_path, key)))
 
 def check_word_seeds(word_seeds):
     """When running in word mode, check if the corresponding word files actually exist
