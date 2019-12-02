@@ -1,12 +1,12 @@
 {
     "phrases": {
         "1" : ["how is the weather"],
-        "2" : ["is it", ["cold", "chilly"], "outside"]
+        "2" : ["is it", ["cold", "chilly"], "outside"],
         "3" : ["who was the", ["first", "second"], "president of the united states"]
     },
     "words": {
         "1" : ["how is the weather"],
-        "2" : ["is it", ["raining", "sunny"], "outside"]
+        "2" : ["is it", ["raining", "sunny"], "outside"],
         "3" : ["what is the most popular", ["dog", "cat"], "breed"]
     }
 }
