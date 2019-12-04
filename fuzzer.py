@@ -56,7 +56,7 @@ def repeat_syllable(segment):
     # Which syllables to repeat
     syllables = sorted(sample(range(num_interv), num_syll))
     # How often to repeat each syllable
-    repetitions = sample(range(2, 7), num_syll)
+    repetitions = [choice(range(2, 7)) for i in range(num_syll)]
     return effects_processor.repeat_syllable(segment, intervals, syllables, repetitions),\
          'Repeat Syllable', {'Repeated Syllables': syllables, 'Repetitions': repetitions}
 

@@ -14,7 +14,7 @@ getLogger('sox').setLevel(ERROR)
 
 def addSeedFiles(dict_to_extend, source_path, seed_type):
     if seed_type == "phrase":
-        dict_to_extend['phrase'].extend([join(source_path, seed) for seed in listdir(source_path)])
+        dict_to_extend['phrase'].extend([join(source_path, seed) for seed in listdir(source_path) if seed!='.DS_Store'])
     elif seed_type == 'text_word':
         with open(join(source_path, 'seed_guide.txt')) as guide:
             string_list = dict_to_extend['word'] 
