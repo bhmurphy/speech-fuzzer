@@ -5,6 +5,7 @@ from json import load as json_load
 from numpy import inner
 from logging import getLogger, ERROR
 from os import environ
+from inspect import signature
 
 class GoogleClient:
     getLogger('tensorflow').setLevel(ERROR)
@@ -14,13 +15,11 @@ class GoogleClient:
         self.semantic_sim = load("https://tfhub.dev/google/universal-sentence-encoder/3")
         with open('google-config.json') as config:
             file_params = json_load(config)
+        try:
+            self.is_failure = getattr(self, file_params['failure'])
+        except AttributeError:
+            raise AttributeError("Google Client Failure Function {} doesn't exist".format(file_params['failure']))
 
-        if file_params['failure'] == 'user_input_failure':
-            self.is_failure = self.user_input_failure
-        elif file_params['failure'] == 'similarity_failure':
-            self.is_failure = self.similarity_failure
-        else:
-            raise ValueError("Google Client Failure Function {} doesn't exist".format(file_params['failure']))
         self.project_id = file_params['project-id']
         self.device_model_id = file_params['device-model-id']
         self.similarity_threshold = file_params.get('similarity-threshold', 0.5)
@@ -52,8 +51,8 @@ class GoogleClient:
         embeddings = self.semantic_sim([initial, mutated])['outputs']
         return inner(embeddings, embeddings)[0, 1]
 
-    def user_input_failure(self, initial_user, mutated_user, initial_client, mutated_client):
+    def user_input_failure(self, initial_user:str , mutated_user:str , initial_client:str , mutated_client:str) -> bool:
         return initial_user != mutated_user or initial_user is None or mutated_user is None
     
-    def similarity_failure(self, initial_user, mutated_user, initial_client, mutated_client):
+    def output_similarity_failure(self, initial_user:str, mutated_user:str, initial_client:str, mutated_client:str) -> bool:
         return self.get_similarity(initial_client, mutated_client) > self.similarity_threshold
