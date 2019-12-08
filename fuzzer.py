@@ -126,11 +126,15 @@ def fuzz_word(pairings, passed_path, failed_path, fail_accumulator, client):
             val = random()
         # Decide if we should manipulate the spacing
         val = random()
+        
         if val < SPACING_CHANCE:
-            spacing(segments)
-        combined_audio = AudioSegment.empty()
-        for seg in segments:
-            combined_audio += seg
+            combined_audio, this_mut, this_arg = spacing(segments)
+            mutators.append(this_mut)
+            args.append(this_arg)
+        else:
+            combined_audio = AudioSegment.empty()
+            for seg in segments:
+                combined_audio += seg
         temp_file = NamedTemporaryFile(suffix='.wav')
         combined_audio.export(temp_file.name, format='wav')
         mutated_user, mutated_google = client.get_responses(temp_file.name)
