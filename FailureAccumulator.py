@@ -9,6 +9,8 @@ class FailureAccumulator:
         self.total_runs = 0
         self.fail_total = 0
         self.output_file = output_file
+        self.user_similarity_sum = 0
+        self.response_similarity_sum = 0
 
     def writeFailures(self):
         d = datetime.today()
@@ -17,6 +19,8 @@ class FailureAccumulator:
             string = "{} out of {} runs failed\n".format(self.fail_total, self.total_runs)
             for key in self.mutator_counts.keys():
                 string += '\tMutator {} was part of {} failures\n'.format(key, self.mutator_counts[key])
+            string += 'Average user input similarity for failures: {} \n'.format(self.user_similarity_sum/self.fail_total)
+            string += 'Average response similarity for failures: {}\n'.format(self.response_similarity_sum/self.fail_total)
             output.write(string)
             #Write the failure list
             for failure in self.failure_list:
@@ -25,6 +29,8 @@ class FailureAccumulator:
     def addFailure(self, failure):
         self.failure_list.append(failure)
         self.increseCounts(failure.mutators)
+        self.user_similarity_sum += failure.user_similarity
+        self.response_similarity_sum += failure.response_similarity
 
     def increseCounts(self, mutators):
         for m in mutators:
