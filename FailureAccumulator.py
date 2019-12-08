@@ -33,6 +33,6 @@ class FailureAccumulator:
         self.response_similarity_sum += failure.response_similarity
 
     def increseCounts(self, mutators):
-        for m in mutators:
+        for m in set(mutators):
             self.mutator_counts[m] = self.mutator_counts.get(m, 0) + 1
         self.fail_total+=1
