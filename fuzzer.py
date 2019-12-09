@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 PHRASE_MUTATOR_CHANCE = 0.35
 WORD_MUTATOR_CHANCE = 0.5
-SPACING_CHANCE = 0.9
+SPACING_CHANCE = 0.6
 ONE_REPETITION_CHANCE = 0.8
 
 def speedup(segment):
@@ -30,11 +30,11 @@ def spacing(segments):
     # 50% chance to have same spacing between words
     if random() > 0.5:
         # Same spacing
-        space = uniform(25, 500)
+        space = uniform(25, 1500)
         spaces = [space for x in range(len(segments) - 1)]
     else:
         # Different spacing
-        spaces = [uniform(50, 500) for x in range(len(segments) - 1)]
+        spaces = [uniform(50, 4000) for x in range(len(segments) - 1)]
     # return effects_processor.spacing()
     return effects_processor.spacing(segments, spaces), 'Spacing', spaces
 
