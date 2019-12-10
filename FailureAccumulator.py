@@ -19,8 +19,9 @@ class FailureAccumulator:
             string = "{} out of {} runs failed\n".format(self.fail_total, self.total_runs)
             for key in self.mutator_counts.keys():
                 string += '\tMutator {} was part of {} failures\n'.format(key, self.mutator_counts[key])
-            string += 'Average user input similarity for failures: {} \n'.format(self.user_similarity_sum/self.fail_total)
-            string += 'Average response similarity for failures: {}\n'.format(self.response_similarity_sum/self.fail_total)
+            if self.fail_total > 0:
+                string += 'Average user input similarity for failures: {} \n'.format(self.user_similarity_sum/self.fail_total)
+                string += 'Average response similarity for failures: {}\n'.format(self.response_similarity_sum/self.fail_total)
             output.write(string)
             #Write the failure list
             for failure in self.failure_list:
