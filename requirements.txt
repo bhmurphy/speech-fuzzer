@@ -4,5 +4,5 @@ pyttsx3==2.71
 pydub==0.23.1
 praat-parselmouth==0.3.3
 tqdm==4.39.0
-tensorflow==2.5.2
+tensorflow==2.5.3
 tensorflow_hub==0.7.0
